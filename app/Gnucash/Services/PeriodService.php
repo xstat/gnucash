@@ -1,26 +1,30 @@
 <?php
 
-namespace App\Gnucash\Time;
+namespace App\Gnucash\Services;
 
 use DateInterval;
 use Carbon\Carbon;
+use App\Gnucash\Model\Period;
 
-class PeriodFactory
+class PeriodService
 {
     public static function create(Carbon $from, DateInterval $interval, Carbon $to)
     {
         $periods = array();
 
         $start = clone($from);
+        $start->startOfMonth();
+
+        $initial = clone($from);
 
         do {
 
             $end = static::apply($start, $interval);
-            $periods[] = new Period($start, $end > $to ? $to : static::threshold($end));
+            $periods[] = new Period($initial, $end > $to ? $to : static::threshold($end));
 
-        } while (($start = $end) < $to);
+        } while (($start = $initial = $end) < $to);
 
-        return $periods;
+        return collect($periods);
     }
 
     protected static function apply(Carbon $date, DateInterval $interval)

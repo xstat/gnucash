@@ -3,27 +3,44 @@
 namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
-use App\Gnucash\Time\PeriodFactory;
-use App\Gnucash\Helpers\InputHelper;
 use App\Http\Controllers\Controller;
+use App\Gnucash\Services\LedgerService;
+use App\Gnucash\Services\PeriodService;
+use App\Gnucash\Input\InputValidator;
+use App\Gnucash\Input\InputConverter;
+use App\Gnucash\Input\InputException;
 
 class PeriodController extends Controller
 {
     public function summary(Request $request)
     {
-        $periods = $this->loadPeriods($request);
+        $validator = new InputValidator($request);
 
-        var_dump($periods);
-    }
+        $validator->requireField('from', function(InputConverter $converter) {
+            return $converter->getAsCarbonDate('from', function() {
+                return LedgerService::getFirstTransactionDate();
+            });
+        });
 
-    protected function loadPeriods(Request $request)
-    {
-        $input = new InputHelper($request);
+        $validator->requireField('interval', function(InputConverter $converter) {
+            return $converter->getAsDateInterval('interval', 'P1M');
+        });
 
-        return PeriodFactory::create(
-            $input->getDate('from', 'now -1 month'),
-            $input->getDateInterval('interval', 'P1M'),
-            $input->getDate('to', 'now')
-        );
+        $validator->requireField('to', function(InputConverter $converter) {
+            return $converter->getAsCarbonDate('to', 'tomorrow midnight -1 second');
+        });
+
+        if ($validator->ready()) {
+
+            $periods = PeriodService::create(
+                $validator->getField('from'),
+                $validator->getField('interval'),
+                $validator->getField('to')
+            );
+
+            return var_dump($periods->all());
+        }
+
+        return $validator->getErrors();
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Gnucash\Time;
+namespace App\Gnucash\Model;
 
 use Carbon\Carbon;
 use JsonSerializable;
