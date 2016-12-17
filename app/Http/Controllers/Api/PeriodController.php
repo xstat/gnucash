@@ -27,7 +27,7 @@ class PeriodController extends Controller
         });
 
         $validator->requireField('to', function(InputConverter $converter) {
-            return $converter->getAsCarbonDate('to', 'tomorrow midnight -1 second');
+            return $converter->getAsCarbonDate('to', 'first day of next month')->startOfDay();
         });
 
         if ($validator->ready()) {

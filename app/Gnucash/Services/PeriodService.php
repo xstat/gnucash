@@ -12,17 +12,27 @@ class PeriodService
     {
         $periods = array();
 
-        $start = clone($from);
-        $start->startOfMonth();
+        $adjust = clone($from);
+        $adjust->startOfMonth();
 
-        $initial = clone($from);
+        $start = clone($from);
 
         do {
 
-            $end = static::apply($start, $interval);
-            $periods[] = new Period($initial, $end > $to ? $to : static::threshold($end));
+            $end = static::apply($adjust, $interval);
 
-        } while (($start = $initial = $end) < $to);
+            if ($start > $end) {
+                // Ignore intervals that end
+                // before they start.
+                $end = $start;
+                continue;
+            }
+
+            $periods[] = new Period(
+                $start, static::substractOneSecond($end > $to ? $to : $end)
+            );
+
+        } while (($adjust = $start = $end) < $to);
 
         return collect($periods);
     }
@@ -34,7 +44,7 @@ class PeriodService
         return $cloned;
     }
 
-    protected static function threshold(Carbon $date)
+    protected static function substractOneSecond(Carbon $date)
     {
         $cloned = clone($date);
         $cloned->modify('-1 second');
