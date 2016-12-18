@@ -16,6 +16,7 @@ class PeriodService
         $adjust->startOfMonth();
 
         $start = clone($from);
+        $start->startOfDay();
 
         do {
 
