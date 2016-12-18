@@ -2,6 +2,8 @@
 
 namespace App\Gnucash\Model;
 
+use App\Gnucash\Services\PriceService;
+
 class Commodity
 {
     protected $guid;
@@ -15,7 +17,7 @@ class Commodity
         $this->fraction = (int) $fraction;
     }
 
-    public function addAmount($amount, $fraction)
+    public function addAmount($amount, $fraction = 1)
     {
         list($amount, $fraction) = $this->adjustAmount(
             $amount, $fraction, $this->fraction
@@ -50,6 +52,19 @@ class Commodity
             $commodity->getAmount(),
             $commodity->getFraction()
         );
+    }
+
+    public function exchange($commodityId)
+    {
+        if ($this->guid == $commodityId) {
+            return clone $this;
+        }
+
+        $price = PriceService::getLatestPrice(
+            $this->guid, $commodityId
+        );
+
+        return $price ? $price->exchange($this) : null;
     }
 
     public function getId()
