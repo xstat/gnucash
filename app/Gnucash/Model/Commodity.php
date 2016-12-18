@@ -6,7 +6,7 @@ use App\Gnucash\Services\PriceService;
 
 class Commodity
 {
-    protected $guid;
+    public $guid;
     protected $amount;
     protected $fraction;
 
@@ -44,7 +44,7 @@ class Commodity
 
     public function sum(Commodity $commodity)
     {
-        if ($this->guid != $commodity->getId()) {
+        if ($this->guid != $commodity->guid) {
             throw new Exception('Incompatible commodities.');
         }
 
@@ -64,12 +64,7 @@ class Commodity
             $this->guid, $commodityId
         );
 
-        return $price ? $price->exchange($this) : null;
-    }
-
-    public function getId()
-    {
-        return $this->guid;
+        return $price ? $price->exchange($this) : clone $this;
     }
 
     public function getAmount()

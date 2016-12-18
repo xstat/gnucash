@@ -7,29 +7,60 @@ use Illuminate\Support\Collection;
 
 class Balance
 {
-    protected $commodities = array();
+    protected $commodities;
 
     public function __construct(Collection $commodities = null)
     {
-        if ($commodities) {
+        $this->commodities = collect();
 
-            $commodities->each(function(Commodity $commodity) {
-                $this->add($commodity);
-            });
+        if (is_null($commodities)) {
+            return;
         }
+
+        $commodities->each(function(Commodity $commodity) {
+            $this->add($commodity);
+        });
     }
 
     public function add(Commodity $commodity)
     {
-        if ($stored = $this->getCommodity($commodity->getId())) {
-            return $stored->sum($commodity);
+        if ( ! $this->commodities->has($commodity->guid)) {
+
+            $this->commodities->put(
+                $commodity->guid, new Commodity($commodity->guid)
+            );
         }
 
-        $this->commodities[$commodity->getId()] = $commodity;
+        $this->commodities->get($commodity->guid)->sum($commodity);
     }
 
-    protected function getCommodity($commodityId)
+    public function exchange($commodityId)
     {
-        return @ $this->commodities[$commodityId];
+        return new Balance($this->exchangeCommodities($commodityId));
+    }
+
+    public function getTotal($commodityId = null)
+    {
+        if ( ! $commodityId) {
+            return $this->commodities;
+        }
+
+        $commodities = $this->exchangeCommodities($commodityId);
+
+        return $commodities->get(
+            $commodityId, new Commodity($commodityId)
+        );
+    }
+
+    protected function exchangeCommodities($commodityId)
+    {
+        return $this->commodities->map(function($commodity) use ($commodityId) {
+            return $commodity->exchange($commodityId);
+        });
+    }
+
+    public function getCommodities()
+    {
+        return $this->commodities;
     }
 }

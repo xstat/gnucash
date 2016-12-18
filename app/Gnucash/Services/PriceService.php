@@ -20,6 +20,10 @@ class PriceService
             ->limit(1)
             ->first();
 
+        if ( ! $record) {
+            return null;
+        }
+
         $price = new Price(
             $record->commodity_guid,
             $record->currency_guid,
