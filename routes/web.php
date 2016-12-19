@@ -12,9 +12,12 @@
 */
 
 Route::get('/', function () {
-    return view('index');
+    return redirect()->route('reportIndex');
 });
 
 Auth::routes();
 
 Route::get('/home', 'Web\HomeController@index');
+
+Route::get('/reports', 'Web\ReportsController@index')->name('reportIndex');
+Route::get('/reports/{report}', 'Web\ReportsController@view')->name('reportView');

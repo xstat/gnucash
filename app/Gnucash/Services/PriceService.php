@@ -3,7 +3,7 @@
 namespace App\Gnucash\Services;
 
 use App\Gnucash\Model\Price;
-    use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB;
 
 class PriceService
 {
