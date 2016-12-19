@@ -17,4 +17,4 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
-Route::get('/period/summary', 'Api\PeriodController@summary');
+Route::get('/v1/period/summary', 'Api\v1\PeriodController@summary');

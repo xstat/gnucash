@@ -12,5 +12,5 @@
 */
 
 Route::get('/', function () {
-    return view('reports.profit-vs-loss');
+    return view('index');
 });

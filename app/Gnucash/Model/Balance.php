@@ -11,16 +11,11 @@ class Balance
 
     public function __construct(Collection $commodities = null)
     {
-        $this->clear();
+        $this->commodities = collect();
 
         if ($commodities) {
             $this->importCommodities($commodities);
         }
-    }
-
-    protected function clear()
-    {
-        $this->commodities = collect();
     }
 
     protected function importCommodities(Collection $commodities)
@@ -44,14 +39,12 @@ class Balance
 
     public function exchange($commodityId)
     {
-        $commodities = $this->commodities->map(function($commodity) use ($commodityId) {
-            return $commodity->exchange($commodityId);
+        $commodities = $this->commodities->map(
+            function($commodity) use ($commodityId) {
+                return $commodity->exchange($commodityId);
         });
 
-        $this->clear();
-        $this->importCommodities($commodities, true);
-
-        return $this;
+        return new Balance($commodities);
     }
 
     public function getTotal($commodityId = null)
@@ -60,7 +53,9 @@ class Balance
             return $this->commodities;
         }
 
-        return $this->commodities->get($commodityId, new Commodity($commodityId));
+        return $this->commodities->get(
+            $commodityId, new Commodity($commodityId)
+        );
     }
 
     public function getCommodities()
