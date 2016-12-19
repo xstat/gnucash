@@ -11,7 +11,9 @@ class LedgerService
 {
     public static function getFirstTransactionDate()
     {
-        return new Carbon(DB::table('transactions')->min('post_date'));
+        return new Carbon(
+            DB::connection('gnucash')->table('transactions')->min('post_date')
+        );
     }
 
     public static function getCommoditiesFromCollection(Collection $collection)

@@ -66,6 +66,20 @@ return [
             'engine' => null,
         ],
 
+        'gnucash' => [
+            'driver' => 'mysql',
+            'host' => env('GNC_DB_HOST', '127.0.0.1'),
+            'port' => env('GNC_DB_PORT', '3306'),
+            'database' => env('GNC_DB_DATABASE', 'forge'),
+            'username' => env('GNC_DB_USERNAME', 'forge'),
+            'password' => env('GNC_DB_PASSWORD', ''),
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+            'engine' => null,
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'host' => env('DB_HOST', '127.0.0.1'),

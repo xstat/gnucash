@@ -9,7 +9,7 @@ class PriceService
 {
     public static function getLatestPrice($commodityId, $currencyId)
     {
-        $record = DB::table('prices')
+        $record = DB::connection('gnucash')->table('prices')
             ->where('commodity_guid', $commodityId)
             ->where('currency_guid', $currencyId)
             ->orWhere(function($query) use( $currencyId, $commodityId) {
