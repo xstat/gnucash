@@ -6,8 +6,6 @@ use Illuminate\Support\Collection;
 
 abstract class Report
 {
-    const TEMPLATE_PREFIX = 'reports.custom.';
-
     protected $id;
     protected $settings;
 
@@ -22,9 +20,8 @@ abstract class Report
         return $this->settings->get('title', $this->id);
     }
 
-    public function getViewName()
+    public function getVueComponentName()
     {
-        $defaultName = static::TEMPLATE_PREFIX . $this->id;
-        return $this->settings->get('view', $defaultName);
+        return sprintf('<%s></%s>', $this->id, $this->id);
     }
 }

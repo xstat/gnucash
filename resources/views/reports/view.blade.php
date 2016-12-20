@@ -4,11 +4,8 @@
 
 @section('content')
 
-    @section('sectionTitle', $report->getTitle())
-    @section('sectionContent')
-        @include($report->getViewName())
-    @endsection
-
-    @include('layouts.partials.section')
+    @section('section.title', $report->getTitle())
+    @section('section.content', $report->getVueComponentName())
+    @include('partials.section')
 
 @endsection

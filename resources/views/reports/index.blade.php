@@ -4,8 +4,8 @@
 
 @section('content')
 
-    @section('sectionTitle', 'Reports')
-    @section('sectionContent')
+    @section('section.title', 'Reports')
+    @section('section.content')
 
         <ul>
             @foreach ($reports as $reportId => $reportSettings)
@@ -17,6 +17,6 @@
 
     @endsection
 
-    @include('layouts.partials.section')
+    @include('partials.section')
 
 @endsection

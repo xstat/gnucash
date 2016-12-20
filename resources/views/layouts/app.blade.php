@@ -17,6 +17,7 @@
     <script>
         window.Laravel = <?php echo json_encode([
             'csrfToken' => csrf_token(),
+            'reports' => array_keys(config('gnucash.reports', []))
         ]); ?>
     </script>
 </head>
