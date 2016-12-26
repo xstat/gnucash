@@ -32,4 +32,15 @@ class ReportsController extends Controller
 
         return view('reports.view', ['report' => $report]);
     }
+
+    public function action($reportName, $reportAction)
+    {
+        $report = $this->reportService->load($reportName);
+
+        if ($report && method_exists($report, $reportAction)) {
+            return $report->$reportAction();
+        }
+
+        abort(404);
+    }
 }

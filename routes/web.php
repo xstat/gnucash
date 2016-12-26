@@ -21,3 +21,4 @@ Route::get('/home', 'Web\HomeController@index');
 
 Route::get('/reports', 'Web\ReportsController@index')->name('reportIndex');
 Route::get('/reports/{report}', 'Web\ReportsController@view')->name('reportView');
+Route::get('/reports/{report}/{action}', 'Web\ReportsController@action')->name('reportAction');

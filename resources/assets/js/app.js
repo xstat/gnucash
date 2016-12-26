@@ -14,7 +14,6 @@ require('./bootstrap');
  */
 
 Vue.component('example', require('./components/Example.vue'));
-Vue.component('collapsible-table', require('./components/CollapsibleTable.vue'));
 
 Laravel.reports.forEach(function(reportId) {
     Vue.component(reportId, require('./reports/' + reportId + '.vue'));

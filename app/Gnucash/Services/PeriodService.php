@@ -5,9 +5,25 @@ namespace App\Gnucash\Services;
 use DateInterval;
 use Carbon\Carbon;
 use App\Gnucash\Model\Period;
+use App\Gnucash\Services\LedgerService;
 
 class PeriodService
 {
+    public static function getAll(DateInterval $interval = null)
+    {
+        if (is_null($interval)) {
+            $interval = new DateInterval('P1M');
+        }
+
+        $until = new Carbon('first day of next month');
+
+        return static::create(
+            LedgerService::getFirstTransactionDate(),
+            $interval,
+            $until->startOfDay()
+        );
+    }
+
     public static function create(Carbon $from, DateInterval $interval, Carbon $to)
     {
         $periods = array();

@@ -1,23 +1,19 @@
 <?php
 
-namespace App\Gnucash\Reports;
+namespace App\Gnucash\Extractors;
 
 use App\Gnucash\Model\Balance;
 use App\Gnucash\Model\Commodity;
 use Illuminate\Support\Facades\DB;
 use App\Gnucash\Services\LedgerService;
 
-class PeriodTotalsByAccountTypeReport
+class TotalsExtractor
 {
     protected $query;
 
     public function __construct()
     {
-        $this->query = DB::table('transactions AS t');
-
-        $this->includeSplits();
-        $this->includeAccounts();
-        $this->groupByAccountType();
+        $this->setup();
 
         $this->query->select(
             'a.account_type',
@@ -27,17 +23,14 @@ class PeriodTotalsByAccountTypeReport
         );
     }
 
-    protected function includeSplits()
+    protected function setup()
     {
-        $this->query->rightJoin('splits AS s', 't.guid', '=', 's.tx_guid');
+        $this->query = DB::table('transactions AS t')
+            ->rightJoin('splits AS s', 't.guid', '=', 's.tx_guid')
+            ->join('accounts AS a', 'a.guid', '=', 's.account_guid');
     }
 
-    protected function includeAccounts()
-    {
-        $this->query->join('accounts AS a', 'a.guid', '=', 's.account_guid');
-    }
-
-    protected function groupByAccountType()
+    public function groupByAccountType()
     {
         $this->query->groupBy('a.account_type', 'a.commodity_guid', 's.quantity_denom');
     }
