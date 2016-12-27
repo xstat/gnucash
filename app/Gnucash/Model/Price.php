@@ -21,10 +21,10 @@ class Price
 
     public function exchange(Commodity $commodity)
     {
-        $exchange = new Commodity($this->currencyId);
+        $exchange = app('CommodityService')->create($this->currencyId);
 
         $amount = $commodity->getAmount() * $this->value / $this->denom;
-        $exchange->addAmount((int) $amount, $commodity->getFraction());
+        $exchange->sumAmount((int) $amount, $commodity->getFraction());
 
         return $exchange;
     }

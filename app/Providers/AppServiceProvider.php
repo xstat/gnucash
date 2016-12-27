@@ -23,6 +23,27 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->bind(
+            'App\Gnucash\Backends\BackendInterface',
+            'App\Gnucash\Backends\Sql\SqlBackend'
+        );
+
+        $this->app->singleton('PeriodService', function() {
+            return new \App\Gnucash\Services\PeriodService();
+        });
+
+        $this->app->singleton('CommodityService', function() {
+            return new \App\Gnucash\Services\CommodityService();
+        });
+
+        $this->app->singleton('BalanceService', function() {
+            return new \App\Gnucash\Services\BalanceService();
+        });
+
+        $this->app->singleton('RepositoryService', function() {
+            return new \App\Gnucash\Services\RepositoryService(
+                app('App\Gnucash\Backends\BackendInterface')
+            );
+        });
     }
 }

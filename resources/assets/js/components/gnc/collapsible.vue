@@ -19,8 +19,10 @@
         </div>
         <div class="gnc-cpe-header gnc-cpe-total" v-if="vm.total" @click="toggle">
             <div class="gnc-cpe-total-wrapper">
-                <div class="gnc-cpe-currency">{{ vm.total.sign }}</div>
-                <div class="gnc-cpe-amount">{{ vm.total.amount }}</div>
+                <div class="gnc-cpe-total-commodity" v-for="commodity in vm.total">
+                    <div class="gnc-cpe-currency">{{ commodity.code }}</div>
+                    <div class="gnc-cpe-amount">{{ commodity.formatted }}</div>
+                </div>
             </div>
         </div>
     </div>
@@ -116,6 +118,7 @@ is-tree-node-and-has-total = '^[0].gnc-cpe-tree-node.gnc-cpe-has-total ^[1..-1]'
 
         > .gnc-cpe-title
             cursor: pointer
+            flex: 1
             padding: $default-padding
 
         > .gnc-cpe-content .gnc-cpe-content-wrapper
@@ -157,8 +160,12 @@ is-tree-node-and-has-total = '^[0].gnc-cpe-tree-node.gnc-cpe-has-total ^[1..-1]'
 
         > .gnc-cpe-total-wrapper
             display: flex
-            justify-content: space-between
+            flex-direction: column
             padding: 0 8px
             width: 100%
+
+            > .gnc-cpe-total-commodity
+                display: flex
+                justify-content: space-between
 
 </style>

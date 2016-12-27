@@ -13,6 +13,12 @@ abstract class Report
     {
         $this->id = $id;
         $this->settings = $settings;
+
+        $this->bootstrap();
+    }
+
+    protected function bootstrap()
+    {
     }
 
     public function getTitle()

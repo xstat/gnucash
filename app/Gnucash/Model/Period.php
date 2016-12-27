@@ -7,13 +7,25 @@ use JsonSerializable;
 
 class Period implements JsonSerializable
 {
-    protected $from;
-    protected $to;
+    public $data;
+    public $from;
+    public $to;
 
     public function __construct(Carbon $from, Carbon $to)
     {
+        $this->data = collect();
         $this->from = $from;
         $this->to = $to;
+    }
+
+    public function JsonSerialize()
+    {
+        $this->data->put('_', [
+            'from' => $this->from,
+            'to' => $this->to
+        ]);
+
+        return $this->data;
     }
 
     public function isFuture()
@@ -29,13 +41,5 @@ class Period implements JsonSerializable
     public function isToday()
     {
         return Carbon::now()->between($this->from, $this->to);
-    }
-
-    public function JsonSerialize()
-    {
-        return [
-            'from' => $this->from,
-            'to' => $this->to
-        ];
     }
 }

@@ -2,22 +2,67 @@
 
 namespace App\Gnucash\Model;
 
+use JsonSerializable;
 use App\Gnucash\Services\PriceService;
 
-class Commodity
+class Commodity implements JsonSerializable
 {
-    public $guid;
+    protected $id;
+    protected $code;
     protected $amount;
     protected $fraction;
 
-    public function __construct($guid, $amount = 0, $fraction = 1)
+    public function __construct($id, $code, $amount = 0, $fraction = 1)
     {
-        $this->guid = $guid;
+        $this->id = (string) $id;
+        $this->code = (string) $code;
         $this->amount = (int) $amount;
         $this->fraction = (int) $fraction;
     }
 
-    public function addAmount($amount, $fraction = 1)
+    public function JsonSerialize()
+    {
+        return [
+            'code'      => $this->code,
+            'amount'    => $this->amount,
+            'fraction'  => $this->fraction,
+            'formatted' => $this->format()
+        ];
+    }
+
+    public function isNull()
+    {
+        return $this->amount == 0;
+    }
+
+    public function format()
+    {
+        return number_format($this->amount / $this->fraction, 2);
+    }
+
+    public function sum(Commodity $commodity)
+    {
+        if ($this->id != $commodity->id) {
+            throw new Exception('Incompatible commodities.');
+        }
+
+        $this->sumAmount($commodity->amount, $commodity->fraction);
+    }
+
+    public function exchange($targetCommodityId)
+    {
+        if ($this->id == $targetCommodityId) {
+            return clone $this;
+        }
+
+        $price = PriceService::getLatestPrice(
+            $this->id, $targetCommodityId
+        );
+
+        return $price ? $price->exchange($this) : clone $this;
+    }
+
+    public function sumAmount($amount, $fraction = 1)
     {
         list($amount, $fraction) = $this->adjustAmount(
             $amount, $fraction, $this->fraction
@@ -42,29 +87,14 @@ class Commodity
         return [(int) $amount, (int) $fraction];
     }
 
-    public function sum(Commodity $commodity)
+    public function getId()
     {
-        if ($this->guid != $commodity->guid) {
-            throw new Exception('Incompatible commodities.');
-        }
-
-        $this->addAmount(
-            $commodity->getAmount(),
-            $commodity->getFraction()
-        );
+        return $this->id;
     }
 
-    public function exchange($commodityId)
+    public function getCode()
     {
-        if ($this->guid == $commodityId) {
-            return clone $this;
-        }
-
-        $price = PriceService::getLatestPrice(
-            $this->guid, $commodityId
-        );
-
-        return $price ? $price->exchange($this) : clone $this;
+        return $this->code;
     }
 
     public function getAmount()

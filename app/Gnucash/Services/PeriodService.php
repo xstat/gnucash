@@ -9,7 +9,7 @@ use App\Gnucash\Services\LedgerService;
 
 class PeriodService
 {
-    public static function getAll(DateInterval $interval = null)
+    public function getAll(DateInterval $interval = null)
     {
         if (is_null($interval)) {
             $interval = new DateInterval('P1M');
@@ -17,14 +17,14 @@ class PeriodService
 
         $until = new Carbon('first day of next month');
 
-        return static::create(
+        return $this->create(
             LedgerService::getFirstTransactionDate(),
             $interval,
             $until->startOfDay()
         );
     }
 
-    public static function create(Carbon $from, DateInterval $interval, Carbon $to)
+    public function create(Carbon $from, DateInterval $interval, Carbon $to)
     {
         $periods = array();
 
@@ -36,7 +36,7 @@ class PeriodService
 
         do {
 
-            $end = static::apply($adjust, $interval);
+            $end = $this->apply($adjust, $interval);
 
             if ($start > $end) {
                 // Ignore intervals that end
@@ -46,7 +46,7 @@ class PeriodService
             }
 
             $periods[] = new Period(
-                $start, static::substractOneSecond($end > $to ? $to : $end)
+                $start, $this->substractOneSecond($end > $to ? $to : $end)
             );
 
         } while (($adjust = $start = $end) < $to);
@@ -54,14 +54,14 @@ class PeriodService
         return collect($periods);
     }
 
-    protected static function apply(Carbon $date, DateInterval $interval)
+    protected function apply(Carbon $date, DateInterval $interval)
     {
         $cloned = clone($date);
         $cloned->add($interval);
         return $cloned;
     }
 
-    protected static function substractOneSecond(Carbon $date)
+    protected function substractOneSecond(Carbon $date)
     {
         $cloned = clone($date);
         $cloned->modify('-1 second');

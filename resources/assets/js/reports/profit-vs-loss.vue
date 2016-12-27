@@ -4,15 +4,11 @@
 
     <gnc-collapsible title="Periods" class="report-wrapper" tree-node="true" expanded="true">
 
-        <gnc-collapsible v-for="(period, index) in periods" :config="period" class="report-period" tree-node="true">
+        <gnc-collapsible v-for="(period, index) in periods" :config="period.item" class="report-period" tree-node="true">
 
-            <gnc-collapsible title="Budget" :data="index" tree-node="true" class="report-budget"></gnc-collapsible>
+            <gnc-collapsible title="Budget" :data="index" tree-node="true" class="report-section-budget"></gnc-collapsible>
 
-            <gnc-collapsible title="Revenues" :total="period.revenue" :data="index" tree-node="true" class="report-revenues" v-if="period.revenue" @load="load"></gnc-collapsible>
-
-            <gnc-collapsible title="Credit" :total="period.credit" :data="index" tree-node="true" class="report-credit" v-if="period.credit" @load="load"></gnc-collapsible>
-
-            <gnc-collapsible title="Expenses" :total="period.expense" :data="index" class="report-expenses" tree-node="true" v-if="period.expense" @load="load"></gnc-collapsible>
+            <gnc-collapsible tree-node="true" v-for="(section, id) in period.sections" :class="'report-section-' + id" :config="section"></gnc-collapsible>
 
         </gnc-collapsible>
 
@@ -60,38 +56,20 @@ export default {
             ]
 
             }, 1000)
+        },
+        fetchPeriods() {
+            this.$http.get('profit-vs-loss/periods').then((response) => {
+                this.periods = response.body.periods
+            }, (response) => {
+                alert('Error')
+            });
         }
+    },
+    mounted() {
+        this.fetchPeriods();
     },
     components: {
         'gnc-collapsible': Collapsible
-    },
-    mounted() {
-        this.periods = [
-            {
-                title: 'Oct 2016',
-                total: { sign: 'ARS', amount: '55,123.45' },
-                stats: false,
-                profit: { sign: 'ARS', amount: '123.35' },
-                revenue: { sign: 'ARS', amount: '3,543.55' },
-                expense: { sign: 'ARS', amount: '4,123.35' },
-            },
-            {
-                title: 'Nov 2016',
-                total: { sign: 'ARS', amount: '55,123.45' },
-                stats: false,
-                profit: { sign: 'ARS', amount: '123.35' },
-                revenue: { sign: 'ARS', amount: '3,543.55' },
-                expense: { sign: 'ARS', amount: '4,123.35' },
-            },
-            {
-                title: 'Dic 2016',
-                total: { sign: 'ARS', amount: '55,123.45' },
-                stats: false,
-                profit: { sign: 'ARS', amount: '123.35' },
-                revenue: { sign: 'ARS', amount: '3,543.55' },
-                expense: { sign: 'ARS', amount: '4,123.35' },
-            },
-        ]
     }
 }
 </script>
@@ -112,19 +90,19 @@ export default {
         .gnc-cpe-header
             font-weight: normal
 
-    &.report-budget
+    &.report-section-budget
         background: #d9edf7
         color: #31708f
 
-    &.report-revenues
+    &.report-section-income
         background: #dff0d8
         color: #3c763d
 
-    &.report-expenses
+    &.report-section-expense
         background: #f2dede
         color: #a94442
 
-    &.report-credit
+    &.report-section-liability
         background: #fcf8e3
         color: #8a6d3b
 

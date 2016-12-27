@@ -2,10 +2,11 @@
 
 namespace App\Gnucash\Model;
 
+use JsonSerializable;
 use App\Gnucash\Model\Commodity;
 use Illuminate\Support\Collection;
 
-class Balance
+class Balance implements JsonSerializable
 {
     protected $commodities;
 
@@ -14,11 +15,23 @@ class Balance
         $this->commodities = collect();
 
         if ($commodities) {
-            $this->importCommodities($commodities);
+            $this->import($commodities);
         }
     }
 
-    protected function importCommodities(Collection $commodities)
+    public function JsonSerialize()
+    {
+        return $this->total()->map(function($commodity) {
+            return $commodity;
+        })->values()->all();
+    }
+
+    public function sum(Balance $balance)
+    {
+        $this->import($balance->commodities);
+    }
+
+    public function import(Collection $commodities)
     {
         $commodities->each(function(Commodity $commodity) {
             $this->add($commodity);
@@ -27,14 +40,19 @@ class Balance
 
     public function add(Commodity $commodity)
     {
-        if ( ! $this->commodities->has($commodity->guid)) {
+        $this->get($commodity->getId())->sum($commodity);
+    }
 
-            $this->commodities->put(
-                $commodity->guid, new Commodity($commodity->guid)
-            );
-        }
+    public function get($commodityId)
+    {
+        return $this->commodities->get($commodityId) ? : $this->create($commodityId);
+    }
 
-        $this->commodities->get($commodity->guid)->sum($commodity);
+    public function create($commodityId)
+    {
+        $commodity = app('CommodityService')->create($commodityId);
+        $this->commodities->put($commodityId, $commodity);
+        return $commodity;
     }
 
     public function exchange($commodityId)
@@ -47,19 +65,14 @@ class Balance
         return new Balance($commodities);
     }
 
-    public function getTotal($commodityId = null)
+    public function total($commodityId = null)
     {
-        if ( ! $commodityId) {
-            return $this->commodities;
+        if ($commodityId) {
+            return $this->commodities->get($commodityId);
         }
 
-        return $this->commodities->get(
-            $commodityId, new Commodity($commodityId)
-        );
-    }
-
-    public function getCommodities()
-    {
-        return $this->commodities;
+        return $this->commodities->filter(function($commodity) {
+            return ! $commodity->isNull();
+        });
     }
 }
