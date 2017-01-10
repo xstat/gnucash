@@ -2,6 +2,7 @@
 
 namespace App\Gnucash\Services;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class CommodityService
@@ -23,16 +24,26 @@ class CommodityService
         return DB::connection('gnucash')->table('commodities')->get();
     }
 
-    public function create($id, $code = null)
+    public function createForTransactionsCollection(Collection $transactions)
     {
-        $code = $code ? : $this->getCodeFromId($id);
-        return new \App\Gnucash\Model\Commodity($id, $code);
+        return $transactions->each(function($transaction) {
+            $transaction->total = $this->create(
+                $transaction->commodityId, $transaction->amount, $transaction->fraction
+            );
+        });
+    }
+
+    public function create($id, $amount = 0, $fraction = 1)
+    {
+        return new \App\Gnucash\Model\Commodity(
+            $id, $this->getCodeFromId($id), $amount, $fraction
+        );
     }
 
     public function createFromCode($code)
     {
         if ($id = $this->getIdFromCode($code)) {
-            return $this->create($id, $code);
+            return $this->create($id);
         }
     }
 

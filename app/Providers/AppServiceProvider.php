@@ -24,8 +24,8 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->bind(
-            'App\Gnucash\Backends\BackendInterface',
-            'App\Gnucash\Backends\Sql\SqlBackend'
+            'TransactionsRequestInterface',
+            'App\Gnucash\Requests\Sql\SqlTransactionsRequest'
         );
 
         $this->app->singleton('PeriodService', function() {

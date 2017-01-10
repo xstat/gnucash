@@ -12,6 +12,7 @@ class BalanceService
         return new \App\Gnucash\Model\Balance($commodities);
     }
 
+    // TODO: Find a better name.
     public function createFromBalanceCollection(Collection $balances)
     {
         $instance = $this->create();

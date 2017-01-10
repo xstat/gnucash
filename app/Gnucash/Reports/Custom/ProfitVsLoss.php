@@ -7,34 +7,27 @@ use App\Gnucash\Reports\Report;
 
 class ProfitVsLoss extends Report
 {
-    protected $sections;
-
-    protected function bootstrap()
-    {
-        $this->sections = [
-            Gnucash::ACCOUNT_TYPE_BANK => 'Bank',
-            Gnucash::ACCOUNT_TYPE_CASH => 'Cash',
-            // Gnucash::ACCOUNT_TYPE_ASSET => 'Asset',
-            // Gnucash::ACCOUNT_TYPE_INCOME => 'Income',
-            // Gnucash::ACCOUNT_TYPE_EXPENSE => 'Expense',
-            // Gnucash::ACCOUNT_TYPE_LIABILITY => 'Liability'
-        ];
-    }
-
     public function periods()
     {
         $periods = app('PeriodService')->getAll();
 
         $periods->each(function($period) {
 
-            $balances = $this->loadBalances($period);
+            $request = app('TransactionsRequestInterface');
 
-            $period->data->put('sections', $this->createSections($balances));
+            $balances = $request->getBalancesByCommodity()
+                ->onlyForPeriod($period)
+                ->onlyAccountTypes([
+                    Gnucash::ACCOUNT_TYPE_BANK,
+                    Gnucash::ACCOUNT_TYPE_CASH
+                ])
+                ->fetch();
 
-            $period->data->put('item', $this->createItem(
-                $period->from->format('Y F'),
-                app('BalanceService')->createFromBalanceCollection($balances)
-            ));
+            $balance = app('BalanceService')
+                ->createFromBalanceCollection($balances);
+
+            $period->data->put('title', $period->from->format('Y F'));
+            $period->data->put('total', $balance);
         });
 
         return ['periods' => $periods];
@@ -42,28 +35,49 @@ class ProfitVsLoss extends Report
 
     public function detail()
     {
-    }
+        $code = request('code');
+        $period = app('PeriodService')->createFromCode($code);
 
-    protected function loadBalances($period)
-    {
-        return app('RepositoryService')
-            ->setOption('period', $period)
-            ->getBalanceByAccountType(
-                array_keys($this->sections)
-            );
-    }
+        if ( ! $code || ! $period) {
+            abort(404);
+        }
 
-    protected function createSections($balances)
-    {
-        return $balances->mapWithKeys(function($balance, $accountType) {
-            return [strtolower($accountType) => $this->createItem(
-                $this->sections[$accountType], $balance
-            )];
+        $balancePeriod = app('PeriodService')->create(null, $period->from);
+
+        $balances = app('TransactionsRequestInterface')
+            ->getBalancesByCommodity()
+            ->onlyForPeriod($balancePeriod)
+            ->onlyAccountTypes([
+                Gnucash::ACCOUNT_TYPE_BANK,
+                Gnucash::ACCOUNT_TYPE_CASH
+            ])
+            ->fetch();
+
+        $transactions = app('TransactionsRequestInterface')
+            ->getTransactionsByCommodity()
+            ->onlyForPeriod($period)
+            ->onlyAccountTypes([
+                Gnucash::ACCOUNT_TYPE_BANK,
+                Gnucash::ACCOUNT_TYPE_CASH
+            ])
+            ->orderByDate()
+            ->fetch();
+
+        $transactions->each(function($items, $commodityId) use ($balances) {
+
+            if ( ! $balance = $balances->get($commodityId)) {
+                $balance = app('BalanceService')->create();
+            }
+
+            $item = clone $items->first();
+            $item->description = 'Cummulative Balance';
+            $item->total = $balance->get($commodityId);
+            $item->amount = $item->total->getAmount();
+            $item->fraction = $item->total->getFraction();
+
+            $items->prepend($item);
         });
-    }
 
-    protected function createItem($title, $balance)
-    {
-        return ['title' => $title, 'total' => $balance];
+        return ['transactions' => $transactions];
     }
 }

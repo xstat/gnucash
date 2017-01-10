@@ -11,7 +11,7 @@ class Period implements JsonSerializable
     public $from;
     public $to;
 
-    public function __construct(Carbon $from, Carbon $to)
+    public function __construct(Carbon $from = null, Carbon $to = null)
     {
         $this->data = collect();
         $this->from = $from;
@@ -20,10 +20,12 @@ class Period implements JsonSerializable
 
     public function JsonSerialize()
     {
-        $this->data->put('_', [
-            'from' => $this->from,
-            'to' => $this->to
-        ]);
+        $code = base64_encode(json_encode([
+            'from' => $this->from->toDateTimeString(),
+            'to' => $this->to->toDateTimeString()
+        ]));
+
+        $this->data->put('code', $code);
 
         return $this->data;
     }

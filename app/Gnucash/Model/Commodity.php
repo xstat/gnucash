@@ -23,10 +23,12 @@ class Commodity implements JsonSerializable
     public function JsonSerialize()
     {
         return [
+            'id'        => $this->id,
             'code'      => $this->code,
+            'data'      => [],
             'amount'    => $this->amount,
             'fraction'  => $this->fraction,
-            'formatted' => $this->format()
+            'formatted' => $this->format(),
         ];
     }
 

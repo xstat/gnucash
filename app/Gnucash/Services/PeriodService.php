@@ -17,14 +17,29 @@ class PeriodService
 
         $until = new Carbon('first day of next month');
 
-        return $this->create(
+        return $this->createMany(
             LedgerService::getFirstTransactionDate(),
             $interval,
             $until->startOfDay()
         );
     }
 
-    public function create(Carbon $from, DateInterval $interval, Carbon $to)
+    public function createFromCode($code)
+    {
+        $data = json_decode(base64_decode($code), true);
+
+        return is_null($data) ? null : $this->create(
+            new Carbon($data['from']),
+            new Carbon($data['to'])
+        );
+    }
+
+    public function create(Carbon $from = null, Carbon $to = null)
+    {
+        return new Period($from, $to);
+    }
+
+    public function createMany(Carbon $from, DateInterval $interval, Carbon $to)
     {
         $periods = array();
 
@@ -45,7 +60,7 @@ class PeriodService
                 continue;
             }
 
-            $periods[] = new Period(
+            $periods[] = $this->create(
                 $start, $this->substractOneSecond($end > $to ? $to : $end)
             );
 
