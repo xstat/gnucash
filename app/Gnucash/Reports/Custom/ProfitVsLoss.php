@@ -16,8 +16,8 @@ class ProfitVsLoss extends Report
             $request = app('TransactionsRequestInterface');
 
             $balances = $request->getBalancesByCommodity()
-                ->onlyForPeriod($period)
-                ->onlyAccountTypes([
+                ->forPeriod($period)
+                ->forAccountTypes([
                     Gnucash::ACCOUNT_TYPE_BANK,
                     Gnucash::ACCOUNT_TYPE_CASH
                 ])
@@ -35,49 +35,106 @@ class ProfitVsLoss extends Report
 
     public function detail()
     {
-        $code = request('code');
-        $period = app('PeriodService')->createFromCode($code);
+        $period = app('PeriodService')->createFromCode(request('code'));
 
-        if ( ! $code || ! $period) {
+        if ( ! $period) {
             abort(404);
         }
 
-        $balancePeriod = app('PeriodService')->create(null, $period->from);
-
-        $balances = app('TransactionsRequestInterface')
-            ->getBalancesByCommodity()
-            ->onlyForPeriod($balancePeriod)
-            ->onlyAccountTypes([
-                Gnucash::ACCOUNT_TYPE_BANK,
-                Gnucash::ACCOUNT_TYPE_CASH
-            ])
-            ->fetch();
-
         $transactions = app('TransactionsRequestInterface')
             ->getTransactionsByCommodity()
-            ->onlyForPeriod($period)
-            ->onlyAccountTypes([
+            ->forPeriod($period)
+            ->forAccountTypes([
                 Gnucash::ACCOUNT_TYPE_BANK,
                 Gnucash::ACCOUNT_TYPE_CASH
             ])
             ->orderByDate()
             ->fetch();
 
-        $transactions->each(function($items, $commodityId) use ($balances) {
+        // $temp = $transactions->first()->groupBy('txId')->filter(function($items) {
+        //     if ($items->count() < 2) {
+        //         return false;
+        //     }
 
-            if ( ! $balance = $balances->get($commodityId)) {
-                $balance = app('BalanceService')->create();
-            }
+        //     $balance = app('CommodityService')->create(1);
+        //     $items->each(function($item) use ($balance) {
+        //         $balance->sumAmount($item->amount, $item->fraction);
+        //     });
 
-            $item = clone $items->first();
-            $item->description = 'Cummulative Balance';
-            $item->total = $balance->get($commodityId);
-            $item->amount = $item->total->getAmount();
-            $item->fraction = $item->total->getFraction();
+        //     return ! $balance->isNull();
+        // });
 
-            $items->prepend($item);
+        // return $temp;
+
+        $transactions->transform(function($items, $commodityId) {
+
+            $balance = app('CommodityService')->create($commodityId);
+            $credit = app('CommodityService')->create($commodityId);
+            $debit = app('CommodityService')->create($commodityId);
+
+            $items = $this->removeSettledTransactions($items, $commodityId);
+
+            $items->each(function($item) use ($balance, $credit, $debit) {
+
+                $total = app('CommodityService')->create(
+                    $item->commodityId, $item->amount, $item->fraction
+                );
+
+                $balance->sum($total);
+
+                if ($item->amount < 0) {
+                    $debit->sum($total);
+                    $item->debit = $total;
+                } else {
+                    $credit->sum($total);
+                    $item->credit = $total;
+                }
+
+                $item->{$item->amount < 0 ? 'debit' : 'credit'} = $total;
+                $item->balance = clone $balance;
+            });
+
+            $summary = clone $items->first();
+            $summary->debit = $debit;
+            $summary->credit = $credit;
+            $summary->balance = $balance;
+            $summary->description = 'Grand Total';
+            $items->push($summary);
+
+            return $items;
         });
 
-        return ['transactions' => $transactions];
+        $txs = $transactions->mapWithKeys(function($items, $currencyId)  {
+            $key = app('CommodityService')->getCodeFromId($currencyId);
+            $val = array_values($items->toArray());
+            return [ $key => $val ];
+        });
+
+        return ['transactions' =>  $txs];
+    }
+
+    protected function removeSettledTransactions($items, $commodityId)
+    {
+        $settled = $items->groupBy('txId')->reduce(function($carry, $items) use($commodityId) {
+            if ($items->count() > 1 && $this->getBalance($items, $commodityId)) {
+                $carry[] = $items->first()->txId;
+            }
+            return $carry;
+        }, []);
+
+        return $items->reject(function($item) use($settled) {
+            return in_array($item->txId, $settled);
+        });
+    }
+
+    protected function getBalance($items, $commodityId)
+    {
+        $balance = app('CommodityService')->create($commodityId);
+
+        $items->each(function($tx) use($balance) {
+            $balance->sumAmount($tx->amount, $tx->fraction);
+        });
+
+        return $balance;
     }
 }

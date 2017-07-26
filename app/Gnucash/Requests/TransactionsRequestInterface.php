@@ -10,10 +10,10 @@ interface TransactionsRequestInterface
 
     public function includeDebitsAndCredits();
 
-    public function onlyAccountTypes(Array $accountTypes);
+    public function forAccountTypes(Array $accountTypes);
     public function exceptAccountTypes(Array $accountTypes);
 
-    public function onlyForPeriod(Period $period);
+    public function forPeriod(Period $period);
     public function exceptPeriod(Period $period);
 
     public function orderByDate();

@@ -23,6 +23,8 @@ class SqlTransactionsRequest implements TransactionsRequestInterface
 
         $this->select = collect([
             'date'        => 't.post_date',
+            'txId'        => 't.guid',
+            'splitId'     => 's.guid',
             'description' => 't.description',
             'commodityId' => 'a.commodity_guid',
             'accountType' => 'a.account_type',
@@ -92,9 +94,7 @@ class SqlTransactionsRequest implements TransactionsRequestInterface
     public function getTransactionsByCommodity()
     {
         $this->formatter = function($records) {
-            return $records->groupBy('commodityId')->map(function($transactions) {
-                return app('CommodityService')->createForTransactionsCollection($transactions);
-            });
+            return $records->groupBy('commodityId');
         };
 
         return $this;
@@ -112,7 +112,7 @@ class SqlTransactionsRequest implements TransactionsRequestInterface
         return $this;
     }
 
-    public function onlyAccountTypes(Array $accountTypes)
+    public function forAccountTypes(Array $accountTypes)
     {
         $this->builder->whereIn('a.account_type', $accountTypes);
 
@@ -126,7 +126,7 @@ class SqlTransactionsRequest implements TransactionsRequestInterface
         return $this;
     }
 
-    public function onlyForPeriod(Period $period)
+    public function forPeriod(Period $period)
     {
         if ($period->from && $period->to) {
             $this->builder->whereBetween('t.post_date', [
@@ -156,6 +156,7 @@ class SqlTransactionsRequest implements TransactionsRequestInterface
     public function orderByDate()
     {
         $this->builder->orderBy('t.post_date');
+        $this->builder->orderBy('t.enter_date');
 
         return $this;
     }

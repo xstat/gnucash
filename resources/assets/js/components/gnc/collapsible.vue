@@ -3,7 +3,7 @@
     <div :class="wrapperClass">
         <div class="gnc-cpe-main">
             <div class="gnc-cpe-header gnc-cpe-title" @click="toggle">
-                {{ vm.title }}
+                {{ title || vm.title }}
             </div>
             <div class="gnc-cpe-content" v-show="state.expanded">
                 <!-- Render items -->
@@ -26,7 +26,7 @@
             </div>
         </div>
     </div>
-    
+
 </template>
 
 <script>
@@ -41,7 +41,7 @@
                 },
                 state: {
                     loaded: false,
-                    expanded: false                    
+                    expanded: false
                 }
             }
         },
@@ -91,7 +91,7 @@
 <style lang="stylus">
 
 $default-padding = 10px
-$default-border-radius = 4px
+$default-border-radius = 0
 
 has-total = '^[0].gnc-cpe-has-total ^[1..-1]'
 is-tree-node = '^[0].gnc-cpe-tree-node ^[1..-1]'
@@ -125,6 +125,7 @@ is-tree-node-and-has-total = '^[0].gnc-cpe-tree-node.gnc-cpe-has-total ^[1..-1]'
             border-width: 1px 0 0 0
             border-style: solid
             padding: $default-padding
+            border-right-width: 0
 
             {has-total}
                 border-top-width: 1px
