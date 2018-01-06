@@ -3,7 +3,7 @@
     <div :class="wrapperClass">
         <div class="gnc-cpe-main">
             <div class="gnc-cpe-header gnc-cpe-title" @click="toggle">
-                {{ title || vm.title }}
+                {{ title || config.title }}
             </div>
             <div class="gnc-cpe-content" v-show="state.expanded">
                 <!-- Render items -->
@@ -17,9 +17,9 @@
                 </div>
             </div>
         </div>
-        <div class="gnc-cpe-header gnc-cpe-total" v-if="vm.total" @click="toggle">
+        <div class="gnc-cpe-header gnc-cpe-total" v-if="total || config.total" @click="toggle">
             <div class="gnc-cpe-total-wrapper">
-                <div class="gnc-cpe-total-commodity" v-for="commodity in vm.total">
+                <div class="gnc-cpe-total-commodity" v-for="commodity in (total || config.total)">
                     <div class="gnc-cpe-currency">{{ commodity.code }}</div>
                     <div class="gnc-cpe-amount">{{ commodity.formatted }}</div>
                 </div>
