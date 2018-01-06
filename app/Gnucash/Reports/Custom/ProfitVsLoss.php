@@ -50,7 +50,8 @@ class ProfitVsLoss extends Report
             ->forPeriod($period)
             ->forAccountTypes([
                 Gnucash::ACCOUNT_TYPE_BANK,
-                Gnucash::ACCOUNT_TYPE_CASH
+                Gnucash::ACCOUNT_TYPE_CASH,
+                Gnucash::ACCOUNT_TYPE_ASSET
             ])
             ->orderByDate()
             ->fetch();
