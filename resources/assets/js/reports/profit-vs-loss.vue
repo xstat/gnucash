@@ -39,6 +39,8 @@
 
         </gnc-collapsible>
 
+        <gnc-collapsible title="TOTAL" :config="{ total }"></gnc-collapsible>
+
     </gnc-collapsible>
 
     </div>
@@ -51,7 +53,8 @@ import Collapsible from '../components/gnc/collapsible.vue'
 export default {
     data() {
         return {
-            periods: []
+            periods: [],
+            total: []
         }
     },
     methods: {
@@ -66,6 +69,8 @@ export default {
         fetchPeriods() {
             this.$http.get('profit-vs-loss/periods').then((response) => {
                 this.periods = response.body.periods
+                this.total = response.body.total
+                console.log(response.body);
             }, (response) => {
                 alert('Error')
             });

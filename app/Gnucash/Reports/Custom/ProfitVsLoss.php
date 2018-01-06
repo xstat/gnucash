@@ -10,8 +10,9 @@ class ProfitVsLoss extends Report
     public function periods()
     {
         $periods = app('PeriodService')->getAll();
+        $total = app('BalanceService')->create();
 
-        $periods->each(function($period) {
+        $periods->each(function($period) use ($total) {
 
             $request = app('TransactionsRequestInterface');
 
@@ -19,18 +20,21 @@ class ProfitVsLoss extends Report
                 ->forPeriod($period)
                 ->forAccountTypes([
                     Gnucash::ACCOUNT_TYPE_BANK,
-                    Gnucash::ACCOUNT_TYPE_CASH
+                    Gnucash::ACCOUNT_TYPE_CASH,
+                    Gnucash::ACCOUNT_TYPE_ASSET
                 ])
                 ->fetch();
 
             $balance = app('BalanceService')
                 ->createFromBalanceCollection($balances);
 
+            $total->sum($balance);
+
             $period->data->put('title', $period->from->format('Y F'));
             $period->data->put('total', $balance);
         });
 
-        return ['periods' => $periods];
+        return ['periods' => $periods, 'total' => $total];
     }
 
     public function detail()
